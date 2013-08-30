@@ -7,13 +7,15 @@
 package org.jitsi.android.gui.contactlist;
 
 import net.java.sip.communicator.service.contactlist.*;
+import net.java.sip.communicator.service.protocol.*;
 import net.java.sip.communicator.util.*;
 
 import org.jitsi.*;
+import org.jitsi.android.*;
 import org.jitsi.android.gui.*;
 import org.jitsi.android.gui.chat.*;
+import org.jitsi.android.gui.util.*;
 import org.jitsi.service.osgi.*;
-import org.osgi.framework.*;
 
 import android.content.*;
 import android.os.Bundle;
@@ -54,6 +56,16 @@ public class ContactListFragment
     private ExpandableListView contactListView;
 
     /**
+     * Stores last clicked <tt>MetaContact</tt>.
+     */
+    private MetaContact clickedContact;
+
+    /**
+     * Stores current chat id, when the activity is paused.
+     */
+    private String currentChatId;
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -65,23 +77,12 @@ public class ContactListFragment
                                          container,
                                          false);
 
-        return content;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void onStart()
-    {
-        super.onStart();
-
         this.contactListService
                 = ServiceUtils.getService( AndroidGUIActivator.bundleContext,
                                            MetaContactListService.class);
 
-        contactListView
-            = (ExpandableListView) getView().findViewById(R.id.contactListView);
+        contactListView = (ExpandableListView) content
+                .findViewById(R.id.contactListView);
 
         this.contactListAdapter = new ContactListAdapter(this);
 
@@ -89,36 +90,250 @@ public class ContactListFragment
         contactListView.setSelector(R.drawable.contact_list_selector);
         contactListView.setOnChildClickListener(this);
         contactListView.setOnGroupClickListener(this);
+        // Adds context menu for contact list items
+        registerForContextMenu(contactListView);
 
         // If the MetaContactListService is already available we need to
         // initialize the adapter.
-        if (contactListService != null && !contactListAdapter.isInitialized())
+        if (!contactListAdapter.isInitialized())
         {
             contactListAdapter.initAdapterData(contactListService);
         }
 
-        // Check if we have contact intent to start chat
-        Intent intent = getActivity().getIntent();
-        String metaUID = intent.getStringExtra(Jitsi.CONTACT_EXTRA);
-        if(metaUID == null)
-            return;
-        MetaContact metaContact
-                = contactListService.findMetaContactByMetaUID(metaUID);
-        if(metaContact == null)
+        // If we have stored state use savedInstanceState bundle
+        // or the arguments otherwise
+        Bundle state
+                = savedInstanceState != null
+                    ? savedInstanceState : getArguments();
+        if(state != null)
         {
-            if(intent.getAction().equals(Jitsi.ACTION_SHOW_CHAT))
+            String intentChatId
+                    = state.getString(ChatSessionManager.CHAT_IDENTIFIER);
+            if(intentChatId != null)
             {
-                logger.error("Meta contact not found for UID: "+metaUID);
+                selectChatSession(
+                        ChatSessionManager.getActiveChat(intentChatId));
             }
-            return;
         }
-        startChatActivity(metaContact);
+
+        return content;
     }
 
     /**
-     * Returns 
+     * {@inheritDoc}
+     */
+    @Override
+    public void onPause()
+    {
+        super.onPause();
+
+        // Manages current chat id only on tablet layout
+        if(AndroidUtils.isTablet())
+        {
+            currentChatId = ChatSessionManager.getCurrentChatId();
+            ChatSessionManager.setCurrentChatId(null);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onResume()
+    {
+        super.onResume();
+
+        // Manages current chat id only on tablet layout
+        if(AndroidUtils.isTablet())
+        {
+            ChatSessionManager.setCurrentChatId(currentChatId);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onSaveInstanceState(Bundle outState)
+    {
+        outState.putString(ChatSessionManager.CHAT_IDENTIFIER, currentChatId);
+
+        super.onSaveInstanceState(outState);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onDestroy()
+    {
+        if(contactListAdapter != null)
+        {
+            contactListAdapter.dispose();
+        }
+
+        super.onDestroy();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v,
+                                    ContextMenu.ContextMenuInfo menuInfo)
+    {
+        super.onCreateContextMenu(menu, v, menuInfo);
+
+        // Inflate contact list context menu
+        MenuInflater inflater = getActivity().getMenuInflater();
+        inflater.inflate(R.menu.contact_menu, menu);
+
+        ExpandableListView.ExpandableListContextMenuInfo info =
+                (ExpandableListView.ExpandableListContextMenuInfo) menuInfo;
+
+        int type =
+                ExpandableListView.getPackedPositionType(info.packedPosition);
+
+        int group =
+                ExpandableListView.getPackedPositionGroup(info.packedPosition);
+
+        int child =
+                ExpandableListView.getPackedPositionChild(info.packedPosition);
+
+        // Only create a context menu for child items
+        if (type != ExpandableListView.PACKED_POSITION_TYPE_CHILD)
+        {
+            return;
+        }
+
+        // Remembers clicked contact
+        clickedContact
+                = ((MetaContact) contactListAdapter.getChild(group, child));
+
+        // Checks if the re-request authorization item should be visible
+        Contact contact = clickedContact.getDefaultContact();
+
+        OperationSetExtendedAuthorizations authOpSet
+                = contact.getProtocolProvider().getOperationSet(
+                OperationSetExtendedAuthorizations.class);
+
+        boolean reRequestVisible = false;
+
+        if (authOpSet != null
+                && authOpSet.getSubscriptionStatus(contact) != null
+                && !authOpSet.getSubscriptionStatus(contact)
+                .equals(OperationSetExtendedAuthorizations
+                                .SubscriptionStatus.Subscribed))
+        {
+            reRequestVisible = true;
+        }
+
+        menu.findItem(R.id.re_request_auth).setVisible(reRequestVisible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean onContextItemSelected(MenuItem item)
+    {
+        if(item.getItemId() == R.id.re_request_auth
+                && clickedContact != null)
+        {
+            requestAuthorization(clickedContact.getDefaultContact());
+            return true;
+        }
+        else if(item.getItemId() == R.id.remove_contact)
+        {
+            removeContact(clickedContact);
+            return true;
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    /**
+     * Removes given <tt>contact</tt> from the contact list.
+     * Asks the user for confirmation, before it's done.
      *
-     * @return
+     * @param contact the contact to be removed from the contact list.
+     */
+    private void removeContact(final MetaContact contact)
+    {
+        Context ctx = JitsiApplication.getGlobalContext();
+        DialogActivity.showConfirmDialog(
+                ctx,
+                ctx.getString(R.string.service_gui_REMOVE_CONTACT),
+                ctx.getString(R.string.service_gui_REMOVE_CONTACT_TEXT,
+                              contact.getDisplayName()),
+                ctx.getString(R.string.service_gui_REMOVE),
+                new DialogActivity.DialogListener()
+                {
+                    @Override
+                    public void onConfirmClicked(DialogActivity dialog)
+                    {
+                        MetaContactListService mls = AndroidGUIActivator
+                                .getMetaContactListService();
+                        mls.removeMetaContact(contact);
+                    }
+
+                    @Override
+                    public void onDialogCancelled(DialogActivity dialog)
+                    {
+                        // Do nothing
+                    }
+                }
+        );
+    }
+
+    /**
+     * Requests authorization for contact.
+     *
+     * @param contact the contact for which we request authorization
+     */
+    private void requestAuthorization(final Contact contact)
+    {
+        final OperationSetExtendedAuthorizations authOpSet
+                = contact.getProtocolProvider().getOperationSet(
+                OperationSetExtendedAuthorizations.class);
+
+        if (authOpSet == null)
+            return;
+
+        new Thread()
+        {
+            @Override
+            public void run()
+            {
+                AuthorizationRequest request
+                        = AndroidGUIActivator.getLoginRenderer()
+                        .getAuthorizationHandler()
+                        .createAuthorizationRequest(contact);
+
+                if(request == null)
+                    return;
+
+                try
+                {
+                    authOpSet.reRequestAuthorization(request, contact);
+                }
+                catch (OperationFailedException e)
+                {
+                    Context ctx = JitsiApplication.getGlobalContext();
+                    DialogActivity.showConfirmDialog(
+                            ctx,
+                            ctx.getString(
+                                R.string.service_gui_RE_REQUEST_AUTHORIZATION),
+                            e.getMessage(), null, null);
+                }
+            }
+        }.start();
+    }
+
+    /**
+     * Returns the contact list view.
+     *
+     * @return the contact list view
      */
     public ExpandableListView getContactListView()
     {
@@ -147,14 +362,25 @@ public class ContactListFragment
 
         if (metaContact != null)
         {
-            startChatActivity(metaContact);
+            if(!metaContact.getContactsForOperationSet(
+                    OperationSetBasicInstantMessaging.class).isEmpty())
+            {
+                startChatActivity(metaContact);
+            }
             return true;
         }
         return false;
     }
 
     /**
-     * 
+     * Expands/collapses the group given by <tt>groupPosition</tt>.
+     *
+     * @param parent the parent expandable list view
+     * @param v the view
+     * @param groupPosition the position of the group
+     * @param id the identifier
+     *
+     * @return <tt>true</tt> if the group click action has been performed
      */
     public boolean onGroupClick(ExpandableListView parent, View v,
         int groupPosition, long id)
@@ -174,24 +400,32 @@ public class ContactListFragment
      */
     public void startChatActivity(MetaContact metaContact)
     {
-        ChatSession chatSession = ChatSessionManager.getActiveChat(metaContact);
+        ChatSession chatSession
+                = (ChatSession) ChatSessionManager.findChatForContact(
+                                    metaContact.getDefaultContact(), true);
 
-        if (chatSession == null)
-        {
-            chatSession = new ChatSession(metaContact);
+        selectChatSession(chatSession);
+    }
 
-            ChatSessionManager.addActiveChat(chatSession);
-        }
+    /**
+     * Selects current chat session. Depends on the current layout new chat
+     * fragment will be selected or new <tt>ChatActivity</tt> will be started.
+     *
+     * @param currentChat current chat session to be selected.
+     */
+    private void selectChatSession(ChatSession currentChat)
+    {
+        currentChatId = currentChat.getChatId();
 
-        ChatSessionManager.setCurrentChatSession(chatSession.getChatId());
+        ChatSessionManager.setCurrentChatId(currentChatId);
 
         View chatExtendedView = getActivity().findViewById(R.id.chatView);
 
         if (chatExtendedView != null)
         {
             ChatTabletFragment chatTabletFragment
-                = ChatTabletFragment.newInstance(chatSession.getChatId());
-                    getActivity().getSupportFragmentManager()
+                    = ChatTabletFragment.newInstance(currentChat.getChatId());
+            getActivity().getSupportFragmentManager()
                     .beginTransaction()
                     .replace(R.id.chatView, chatTabletFragment)
                     .setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN)
@@ -199,14 +433,10 @@ public class ContactListFragment
         }
         else
         {
-            Intent chatIntent = new Intent(
-                getActivity().getApplicationContext(),
-                ChatActivity.class);
-
-            chatIntent.setFlags(
-                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                | Intent.FLAG_ACTIVITY_NEW_TASK);
-            getActivity().getApplicationContext().startActivity(chatIntent);
+            Intent chatIntent = new Intent(getActivity(), ChatActivity.class);
+            chatIntent.putExtra(ChatSessionManager.CHAT_IDENTIFIER,
+                                currentChat.getChatId());
+            getActivity().startActivity(chatIntent);
         }
     }
 

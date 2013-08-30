@@ -8,7 +8,12 @@ package org.jitsi.android.gui.chat;
 
 import java.util.*;
 
+import net.java.sip.communicator.service.contactlist.*;
+import net.java.sip.communicator.service.protocol.*;
 import net.java.sip.communicator.service.protocol.event.*;
+import net.java.sip.communicator.util.*;
+
+import org.jitsi.android.gui.*;
 
 /**
  * The <tt>ChatMessage</tt> class encapsulates message information in order to
@@ -18,6 +23,11 @@ import net.java.sip.communicator.service.protocol.event.*;
  */
 public class ChatMessage
 {
+    /**
+     * The logger
+     */
+    private static final Logger logger = Logger.getLogger(ChatMessage.class);
+
     /**
      * The message type representing outgoing messages.
      */
@@ -82,7 +92,7 @@ public class ChatMessage
     /**
      * The type of the message.
      */
-    private final int messageType;
+    private int messageType;
 
     /**
      * The title of the message. This property is optional and could be used
@@ -134,9 +144,9 @@ public class ChatMessage
      * Creates a <tt>ChatMessage</tt> by specifying all parameters of the
      * message.
      * @param contactName the name of the contact
-     * @param contactDisplayName the contact display name
      * @param date the date and time
      * @param messageType the type (INCOMING or OUTGOING)
+     * @param messageTitle the title of the message
      * @param message the content
      * @param contentType the content type (e.g. "text", "text/html", etc.)
      */
@@ -179,6 +189,7 @@ public class ChatMessage
      * @param contactDisplayName the contact display name
      * @param date the date and time
      * @param messageType the type (INCOMING or OUTGOING)
+     * @param messageTitle the title of the message
      * @param message the content
      * @param contentType the content type (e.g. "text", "text/html", etc.)
      * @param messageUID The ID of the message.
@@ -307,6 +318,39 @@ public class ChatMessage
         return correctedMessageUID;
     }
 
+    /**
+     * Sets the message type.
+     *
+     * @param msgType the type of the message
+     */
+    public void setMessageType(int msgType)
+    {
+        this.messageType = msgType;
+    }
+
+    public ChatMessage clone()
+    {
+        return new ChatMessage(
+                        contactName,
+                        contactDisplayName,
+                        date,
+                        messageType,
+                        messageTitle,
+                        message,
+                        contentType,
+                        messageUID,
+                        correctedMessageUID);
+    }
+
+    /**
+     * Returns the message type corresponding to the given
+     * <tt>MessageReceivedEvent</tt>.
+     *
+     * @param evt the <tt>MessageReceivedEvent</tt>, that gives us information
+     * of the message type
+     * @return the message type corresponding to the given
+     * <tt>MessageReceivedEvent</tt>
+     */
     public static int getMessageType(MessageReceivedEvent evt)
     {
         int eventType = evt.getEventType();
@@ -329,5 +373,75 @@ public class ChatMessage
         }
 
         return messageType;
+    }
+
+    static public ChatMessage getMsgForEvent(final MessageDeliveredEvent evt)
+    {
+            final Contact contact = evt.getDestinationContact();
+            final Message msg = evt.getSourceMessage();
+
+            return new ChatMessage(
+                    contact.getProtocolProvider()
+                                .getAccountID().getAccountAddress(),
+                    getAccountDisplayName(contact.getProtocolProvider()),
+                    evt.getTimestamp(),
+                    ChatMessage.OUTGOING_MESSAGE,
+                    null,
+                    msg.getContent(),
+                    msg.getContentType(),
+                    msg.getMessageUID(),
+                    evt.getCorrectedMessageUID());
+    }
+
+    static public ChatMessage getMsgForEvent(final MessageReceivedEvent evt)
+    {
+
+        final Contact protocolContact = evt.getSourceContact();
+        final Message message = evt.getSourceMessage();
+        final MetaContact metaContact
+                = AndroidGUIActivator.getContactListService()
+                        .findMetaContactByContact(protocolContact);
+
+        return new ChatMessage(
+                protocolContact.getAddress(),
+                metaContact.getDisplayName(),
+                evt.getTimestamp(),
+                getMessageType(evt),
+                null,
+                message.getContent(),
+                message.getContentType(),
+                message.getMessageUID(),
+                evt.getCorrectedMessageUID());
+    }
+
+    /**
+     * Returns the account user display name for the given protocol provider.
+     * @param protocolProvider the protocol provider corresponding to the
+     * account to add
+     * @return The account user display name for the given protocol provider.
+     */
+    public static String getAccountDisplayName(
+            ProtocolProviderService protocolProvider)
+    {
+        final OperationSetServerStoredAccountInfo accountInfoOpSet
+                = protocolProvider.getOperationSet(
+                OperationSetServerStoredAccountInfo.class);
+
+        try
+        {
+            if (accountInfoOpSet != null)
+            {
+                String displayName
+                        = AccountInfoUtils.getDisplayName(accountInfoOpSet);
+                if(displayName != null && displayName.length() > 0)
+                    return displayName;
+            }
+        }
+        catch(Exception e)
+        {
+            logger.error("Cannot obtain display name through OPSet");
+        }
+
+        return protocolProvider.getAccountID().getDisplayName();
     }
 }

@@ -45,91 +45,42 @@
             unless="sdk.dir"
     />
 
+    <!-- version-tag: custom -->
+    <import file="${sdk.dir}/tools/ant/build.xml" />
+
     <!--target name="-pre-build">
     </target-->
 
-    <!-- before compilation clears libs folder and populated
-     with all the libraries and binaries we use -->
-    <target name="setup-libs">
-        <mkdir dir="libs"/>
-
-        <!-- always include the jars we will manipulate
-            or we can manipulate the already modified one
-            and also we need the orig files during compilation
-            -->
-        <delete>
-            <fileset dir="libs">
-                <include name="protocol.jar"/>
-                <include name="smacklib.jar"/>
-                <include name="protocol-sip.jar"/>
-                <include name="protocol-jabber.jar"/>
-                <include name="libjitsi.jar"/>
-                <include name="java-stubs.jar"/>
-                <include name="resourcemanager.jar"/>
-            </fileset>
-        </delete>
-
-        <copy todir="libs" verbose="true">
-            <fileset dir="lib">
-                <include name="*.jar"/>
-                <or>
-                    <modified/>
-                    <present present="srconly" targetdir="libs"/>
-                </or>
-            </fileset>
-            <fileset dir="lib/bundles">
-                <include name="*.jar"/>
-                <or>
-                    <modified/>
-                    <present present="srconly" targetdir="libs"/>
-                </or>
-            </fileset>
-            <fileset dir="lib/native">
-                <include name="**/*"/>
-                <or>
-                    <modified/>
-                    <present present="srconly" targetdir="libs"/>
-                </or>
-            </fileset>
-        </copy>
-    </target>
-
-    <!-- after compilation has finished
-     rename some package names.
-     sip protocol, to use our lib version not the one bundled into android
-     jabber protocol, libjitsi, to use libs from desktop version
-     without modifications
-     -->
-    <target name="-post-compile">
-
-        <!--delete dir="${out.classes.absolute.dir}/java"/>
-        <delete dir="${out.classes.absolute.dir}/javax"/-->
-        <!--delete file="libs/java-stubs.jar"/-->
-
-        <!-- target to rename packages in class files outside jar file -->
-        <taskdef name="package-rename"
-            classname="org.jitsi.util.asm.PackageRenamer"
-            classpath="lib/installer-exclude/package-renamer.jar:lib/installer-exclude/asm-commons-4.1.jar:lib/installer-exclude/asm-4.1.jar"/>
-        <!-- rename class that were just compiled -->
-        <package-rename>
-            <fileset dir="${out.classes.absolute.dir}">
-                <include name="**/*"/>
-                <modified/>
-            </fileset>
-            <rule pattern="java.awt.**"
-                  result="org.jitsi.android.util.java.awt.@1"/>
-            <rule pattern="javax.swing.**"
-                  result="org.jitsi.android.util.javax.swing.@1"/>
-
-        </package-rename>
-
+    <target name="define-jarjar">
         <!-- task to rename packages in jar files -->
         <taskdef name="jarjar" classname="com.tonicsystems.jarjar.JarJarTask"
-            classpath="lib/installer-exclude/jarjar.jar"/>
+                 classpath="lib/installer-exclude/jarjar.jar"/>
+    </target>
+
+    <target name="clean" depends="android_rules.clean">
+        <!-- Clears libs folder -->
+        <delete dir="libs" />
+    </target>
+
+    <!-- This target should be called after updating Jitsi bundles
+         inside lib/asset-bundles
+        -->
+    <target name="create-asset-dex" depends="define-jarjar">
+
+        <getbuildtools name="android.build.tools.dir" />
+        <property name="dx" location="${android.build.tools.dir}/dx${bat}" />
+
+        <!-- Copies lib bundles to temp dir -->
+        <property name="asset.libs.dir"
+                  value="${out.absolute.dir}/asset-libs" />
+        <delete dir="${asset.libs.dir}" />
+        <copy todir="${asset.libs.dir}" >
+            <fileset dir="lib/asset-bundles" />
+        </copy>
 
         <!-- renames packages as different versions are used in devices -->
-        <jarjar jarfile="libs/protocol-sip.jar">
-            <zipfileset src="lib/bundles/protocol-sip.jar"/>
+        <jarjar jarfile="${asset.libs.dir}/protocol-sip.jar">
+            <zipfileset src="lib/asset-bundles/protocol-sip.jar"/>
 
             <!-- Reported by Pawel Domas
                 renaming this strings leads to Exception -
@@ -155,16 +106,10 @@
                   result="org.jitsi.android.util.java.awt.@1"/>
         </jarjar>
 
-        <!-- renaming bouncycastle packages -->
-        <jarjar jarfile="libs/bouncycastle.jar">
-            <zipfileset src="lib/bundles/bouncycastle.jar"/>
-            <rule pattern="org.bouncycastle.**"
-                  result="org.jitsi.bouncycastle.@1"/>
-        </jarjar>
 
         <!-- renaming packages in order to use vanilla smack in android -->
-        <jarjar jarfile="libs/smacklib.jar">
-            <zipfileset src="lib/bundles/smacklib.jar"/>
+        <jarjar jarfile="${asset.libs.dir}/smacklib.jar">
+            <zipfileset src="lib/asset-bundles/smacklib.jar"/>
             <rule pattern="org.xmlpull.v1.**"
                   result="org.jitsi.org.xmlpull.v1.@1"/>
 
@@ -180,8 +125,8 @@
                   result="org.apache.harmony.javax.security.auth.@1"/>
         </jarjar>
         <!-- renaming packages in order to use vanilla smack in android -->
-        <jarjar jarfile="libs/protocol-jabber.jar">
-            <zipfileset src="lib/bundles/protocol-jabber.jar"/>
+        <jarjar jarfile="${asset.libs.dir}/protocol-jabber.jar">
+            <zipfileset src="lib/asset-bundles/protocol-jabber.jar"/>
             <rule pattern="org.xmlpull.v1.**"
                   result="org.jitsi.org.xmlpull.v1.@1"/>
 
@@ -198,6 +143,38 @@
 
             <rule pattern="java.awt.**"
                   result="org.jitsi.android.util.java.awt.@1"/>
+        </jarjar>
+
+        <!-- Create dex file for library bundles -->
+        <mkdir dir="${out.absolute.dir}/jitsi_bundles_dex_dir" />
+        <dex executable="${dx}"
+             output="${out.absolute.dir}/jitsi_bundles_dex_dir/classes.dex"
+             verbose="${verbose}" >
+            <path path="${asset.libs.dir}"/>
+        </dex>
+        <!-- Jar asset dex file so it can be consumed by the DexClassLoader. -->
+        <!-- Package the output in the assets directory of the apk. -->
+        <jar destfile="${asset.absolute.dir}/jitsi-bundles-dex.jar"
+             basedir="${out.absolute.dir}/jitsi_bundles_dex_dir" includes="classes.dex" />
+
+        <delete dir="${asset.libs.dir}" />
+
+    </target>
+
+    <!-- before compilation clears libs folder and populated
+     with all the libraries and binaries we use -->
+    <target name="setup-libs" depends="create-asset-dex">
+        <mkdir dir="libs"/>
+
+        <!-- fix loading some classes -->
+        <jarjar jarfile="libs/ui-service.jar">
+            <zipfileset src="lib/bundles/ui-service.jar"/>
+            <rule pattern="java.awt.**"
+                  result="org.jitsi.android.util.java.awt.@1"/>
+            <rule pattern="javax.swing.**"
+                  result="org.jitsi.android.util.javax.swing.@1"/>
+            <rule pattern="javax.sound.**"
+                  result="org.jitsi.android.util.javax.sound.@1"/>
         </jarjar>
 
         <!-- fix loading some classes -->
@@ -212,6 +189,7 @@
         </jarjar>
 
         <!-- fix loading some classes -->
+        <!-- Added delete as jarjar is not always renaming libjitsi.jar -->
         <jarjar jarfile="libs/libjitsi.jar">
             <zipfileset src="lib/bundles/libjitsi.jar"/>
             <rule pattern="java.awt.**"
@@ -225,6 +203,11 @@
         </jarjar>
 
         <!-- fix loading some classes -->
+        <jarjar jarfile="libs/bouncycastle.jar">
+            <zipfileset src="lib/bundles/bouncycastle.jar"/>
+            <rule pattern="org.bouncycastle.**"
+                  result="org.jitsi.bouncycastle.@1"/>
+        </jarjar>
         <jarjar jarfile="libs/bccontrib.jar">
             <zipfileset src="lib/bundles/bccontrib.jar"/>
             <rule pattern="org.bouncycastle.**"
@@ -239,6 +222,15 @@
             <zipfileset src="lib/bundles/zrtp4j.jar"/>
             <rule pattern="org.bouncycastle.**"
                   result="org.jitsi.bouncycastle.@1"/>
+        </jarjar>
+        <jarjar jarfile="libs/otr.jar">
+            <zipfileset src="lib/bundles/otr.jar"/>
+            <rule pattern="java.awt.**"
+                  result="org.jitsi.android.util.java.awt.@1"/>
+            <rule pattern="org.bouncycastle.**"
+                  result="org.jitsi.bouncycastle.@1"/>
+            <rule pattern="javax.swing.**"
+                  result="org.jitsi.android.util.javax.swing.@1"/>
         </jarjar>
 
         <!-- and finally the stubs we use for common java
@@ -268,12 +260,33 @@
             <rule pattern="javax.swing.**"
                   result="org.jitsi.android.util.javax.swing.@1"/>
         </jarjar>
+
+        <copy todir="libs" verbose="true">
+            <fileset dir="lib">
+                <include name="*.jar"/>
+                <or>
+                    <modified/>
+                    <present present="srconly" targetdir="libs"/>
+                </or>
+            </fileset>
+            <fileset dir="lib/bundles">
+                <include name="*.jar"/>
+                <or>
+                    <modified/>
+                    <present present="srconly" targetdir="libs"/>
+                </or>
+            </fileset>
+            <fileset dir="lib/native">
+                <include name="**/*"/>
+                <or>
+                    <modified/>
+                    <present present="srconly" targetdir="libs"/>
+                </or>
+            </fileset>
+        </copy>
     </target>
 
-    <!-- version-tag: custom -->
-    <import file="${sdk.dir}/tools/ant/build.xml" />
-
-    <target name="compile" depends="setup-libs,-compile"/>
+    <target name="compile" depends="-compile"/>
 
     <target name="debug-install" depends="debug">
         <copy file="./bin/jitsi-android-debug.apk"
@@ -289,13 +302,11 @@
     <!-- install and starts jitsi apk -->
     <target name="adb-install-and-run" depends="adb-install">
         <exec executable="${sdk.dir}/platform-tools/adb" >
-            <arg line=" shell am start -n org.jitsi/org.jitsi.android.gui.Jitsi"/>
+            <arg line=" shell am start -n org.jitsi/org.jitsi.android.gui.LauncherActivity"/>
         </exec>
     </target>
 
-    <target name="rebuild-and-deploy"
-        depends="setup-libs,-pre-compile,compile,-post-compile,debug-install,adb-install"
-        />
+    <target name="make-and-deploy" depends="make,adb-install" />
 
     <!-- Copies/Updates jitsi bundles from the jitsi project path to the
         current libs folder. Copies only the bundles that are already present
@@ -309,6 +320,14 @@
                 <include name="*.jar"/>
                 <not>
                     <present present="srconly" targetdir="lib/bundles"/>
+                </not>
+            </fileset>
+        </copy>
+        <copy todir="lib/asset-bundles" verbose="true" overwrite="true">
+            <fileset dir="./${jitsi.path}/sc-bundles">
+                <include name="*.jar"/>
+                <not>
+                    <present present="srconly" targetdir="lib/asset-bundles"/>
                 </not>
             </fileset>
         </copy>
@@ -330,12 +349,12 @@
     </target>
 
     <!-- makes the project and creates debug apk -->
-    <target name="make" depends="setup-libs,debug"/>
+    <target name="make" depends="compile,debug-install"/>
 
     <!-- cleans and makes project -->
-    <target name="rebuild" depends="clean,make"/>
+    <target name="rebuild" depends="clean,setup-libs,make"/>
 
     <!-- makes, install and runs the project on the default device -->
-    <target name="run" depends="debug-install,adb-install-and-run"/>
+    <target name="run" depends="make,adb-install-and-run"/>
 
 </project>

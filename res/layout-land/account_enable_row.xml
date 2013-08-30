@@ -40,11 +40,11 @@
             android:layout_centerVertical="true"
             android:src="@drawable/jabber_status_phone"/>
         <TextView
-                    style="@style/MediumFont"
+                    style="@style/LargeFont"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/accountName"
-                    android:text="AccountName"
+                    android:text="sipcommunicator@jitsi.org"
                     android:layout_toRightOf="@+id/accountProtoIcon"
                     android:layout_centerVertical="true"
                     android:layout_marginLeft="10dp"/>
