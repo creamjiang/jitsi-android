@@ -10,7 +10,6 @@ import android.content.*;
 import android.os.Bundle;
 import android.preference.*;
 
-import java.awt.*;
 import java.util.*;
 import javax.media.*;
 
@@ -22,6 +21,7 @@ import org.jitsi.android.*;
 import org.jitsi.android.gui.*;
 import org.jitsi.android.gui.settings.util.*;
 import org.jitsi.android.gui.util.*;
+import org.jitsi.android.util.java.awt.*;
 import org.jitsi.impl.neomedia.*;
 import org.jitsi.impl.neomedia.device.*;
 import org.jitsi.service.neomedia.*;
@@ -115,6 +115,8 @@ public class SettingsActivity
          * The device configuration
          */
         private DeviceConfiguration deviceConfig;
+
+        private AudioSystem audioSystem;
 
         /**
          * Summary mapper used to display preferences values as summaries.
@@ -316,6 +318,8 @@ public class SettingsActivity
             this.deviceConfig
                     = NeomediaActivator.getMediaServiceImpl()
                     .getDeviceConfiguration();
+
+            this.audioSystem = deviceConfig.getAudioSystem();
         }
 
         /**
@@ -450,9 +454,9 @@ public class SettingsActivity
         /**
          * Selects resolution from supported resolutions list for given string.
          * @param resStr resolution string created with method
-         *        {@link #resToStr(java.awt.Dimension)}.
+         *        {@link #resToStr(Dimension)}.
          * @return resolution <tt>Dimension</tt> for given string representation
-         *         created with method {@link #resToStr(java.awt.Dimension)}
+         *         created with method {@link #resToStr(Dimension)}
          */
         private static Dimension resoultionForStr(String resStr)
         {
@@ -496,7 +500,7 @@ public class SettingsActivity
                             & audioSystemFeatures) != 0;
             echoCancelPRef.setEnabled( hasEchoFeature );
             echoCancelPRef.setChecked( hasEchoFeature
-                                       &&deviceConfig.isEchoCancel() );
+                                       &&audioSystem.isEchoCancel() );
 
             // Denoise
             CheckBoxPreference denoisePref
@@ -506,7 +510,7 @@ public class SettingsActivity
                             & audioSystemFeatures) != 0;
             denoisePref.setEnabled( hasDenoiseFeature );
             denoisePref.setChecked( hasDenoiseFeature
-                                    && deviceConfig.isDenoise() );
+                                    && audioSystem.isDenoise() );
         }
 
         /**
@@ -617,14 +621,14 @@ public class SettingsActivity
             else if(key.equals(P_KEY_AUDIO_ECHO_CANCEL))
             {
                 // Echo cancellation
-                deviceConfig.setEchoCancel(
+                audioSystem.setEchoCancel(
                         shPreferences.getBoolean(
                                 P_KEY_AUDIO_ECHO_CANCEL, true));
             }
             else if(key.equals(P_KEY_AUDIO_DENOISE))
             {
                 // Noise reduction
-                deviceConfig.setDenoise(
+                audioSystem.setDenoise(
                         shPreferences.getBoolean(
                                 P_KEY_AUDIO_DENOISE, true));
             }

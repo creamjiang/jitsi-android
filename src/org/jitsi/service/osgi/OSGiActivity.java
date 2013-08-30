@@ -15,6 +15,7 @@ import android.support.v4.app.*;
 import android.view.*;
 import net.java.sip.communicator.util.*;
 import org.jitsi.android.*;
+import org.jitsi.android.gui.util.*;
 import org.osgi.framework.*;
 
 import java.util.*;
@@ -107,6 +108,25 @@ public class OSGiActivity
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
+        if(Build.VERSION.SDK_INT >= 11)
+        {
+            ActionBar actionBar = getActionBar();
+            if(actionBar != null)
+            {
+
+                // Disable up arrow on home activity
+                Class<?> homeActivity
+                        = JitsiApplication.getHomeScreenActivityClass();
+                if(this.getClass().equals(homeActivity))
+                {
+                    actionBar.setDisplayHomeAsUpEnabled(false);
+                    actionBar.setHomeButtonEnabled(false);
+                }
+
+                ActionBarUtil.setTitle(this, getTitle());
+            }
+        }
+
         super.onCreate(savedInstanceState);
 
         ServiceConnection serviceConnection
@@ -379,6 +399,15 @@ public class OSGiActivity
     protected BundleContext getBundlecontext()
     {
         return bundleContext;
+    }
+
+    /**
+     * Returns the content <tt>View</tt>.
+     * @return the content <tt>View</tt>.
+     */
+    protected View getContentView()
+    {
+        return findViewById(android.R.id.content);
     }
 
     /**

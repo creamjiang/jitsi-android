@@ -30,11 +30,44 @@
     <string name="exit_app">Exit</string>
     <string name="service_gui_UNKNOWN_CONTACT">Unknown</string>
     <string name="service_gui_ACCOUNT_ME">Me</string>
+    <string name="service_gui_CONTACT_PAUSED_TYPING">paused typing</string>
+    <string name="service_gui_CONTACT_TYPING">is typing</string>
+
+    <string name="service_gui_ADD_AUTHORIZED_CONTACT">Add %s to your contact list</string>
+    <string name="service_gui_AUTHORIZE">Authorize</string>
+    <string name="service_gui_AUTHORIZATION_ACCEPTED">contact has accepted your authorization request.</string>
+    <string name="service_gui_AUTHENTICATION_REJECTED">contact has rejected your authorization request.</string>
+    <string name="service_gui_AUTHORIZATION_REQUESTED">Authorization requested</string>
+    <string name="service_gui_AUTHORIZATION_REQUESTED_INFO">The %s contact requests your authorization.</string>
+    <string name="service_gui_AUTHORIZATION_RESPONSE">Authorization response</string>
+    <string name="service_gui_DENY">Deny</string>
+    <string name="service_gui_IGNORE">Ignore</string>
+    <string name="service_gui_NOT_AUTHORIZED">Not authorized</string>
+    <string name="service_gui_TYPE_YOUR_REQUEST">Type your request here</string>
+    <string name="service_gui_REQUEST">Request</string>
+    <string name="service_gui_REQUEST_AUTHORIZATION">Request authorization</string>
+    <string name="service_gui_REQUEST_AUTHORIZATION_MSG">
+        Can\'t add %1$s to your Contact List.
+        %1$s must authorize your request to add him/her.
+        Please enter your request below.
+    </string>
+    <string name="service_gui_RE_REQUEST_AUTHORIZATION">
+        Re-request authorization
+    </string>
+    <string name="service_gui_REMOVE">
+        Remove
+    </string>
+    <string name="service_gui_REMOVE_CONTACT">
+        Remove contact
+    </string>
+    <string name="service_gui_REMOVE_CONTACT_TEXT">
+        <DIV>Are you sure you want to remove <B> %s </B><BR/>from your contact list?</DIV>
+    </string>
 
     <!-- Main Menu items -->
     <string name="service_gui_ACCOUNTS_STATUS">Accounts status</string>
     <string name="service_gui_ACCOUNTS_SETTINGS">Accounts settings</string>
-    
+
     <!-- Sign in -->
     <string name="service_gui_SIGN_IN">Sign in</string>
     <string name="service_gui_SIGN_OUT">Sign out</string>
@@ -70,6 +103,8 @@
     <string name="service_gui_CLOSE_CHAT">Close chat</string>
     <string name="service_gui_CLOSE_ALL_CHATS">Close all chats</string>
     <string name="service_gui_OK">Ok</string>
+    <string name="service_gui_YES">Yes</string>
+    <string name="service_gui_NO">No</string>
     <string name="service_gui_CANCEL">Cancel</string>
     <string name="service_gui_SEARCH">Search</string>
     <string name="service_gui_ADD_CONTACT">Add contact</string>
@@ -95,6 +130,11 @@
     <string name="service_gui_CONTACTS">Contacts</string>
     <string name="service_gui_ENTER_NAME_OR_NUMBER">Enter name or number</string>
 
+    <!-- Logs -->
+    <string name="service_gui_SEND_LOGS_SUBJECT">Jitsi logs</string>
+    <string name="service_gui_SEND_LOGS_TITLE">Send Jitsi logs</string>
+    <string name="service_gui_SEND_LOGS">Send logs</string>
+
     <!-- Call -->
     <string name="service_gui_VOLUME_CONTROL_TOOL_TIP">Adjust volume</string>
     <string name="service_gui_VOLUME_CONTROL_TITLE">Output volume gain level</string>
@@ -104,6 +144,59 @@
     <string name="service_gui_SEND_MESSAGE">Send a message</string>
     <string name="service_gui_CALL_WITH">Call with</string>
 
+    <!-- OTR plugin -->
+    <string name="plugin_otr_menu_TITLE">Secure chat</string>
+    <string name="plugin_otr_menu_START_OTR">Start private conversation</string>
+    <string name="plugin_otr_menu_END_OTR">End private conversation</string>
+    <string name="plugin_otr_menu_REFRESH_OTR">Refresh private conversation</string>
+    <string name="plugin_otr_menu_AUTHENTICATE_BUDDY">Authenticate buddy</string>
+    <string name="plugin_otr_menu_WHATS_THIS">What\'s this</string>
+    <string name="plugin_otr_menu_CB_AUTO">Automatically initiate private messaging</string>
+    <string name="plugin_otr_menu_CB_ENABLE">Enable private messaging</string>
+    <string name="plugin_otr_menu_CB_REQUIRE">Require private messaging</string>
+    <string name="plugin_otr_menu_CB_RESET">Reset</string>
+    <string name="plugin_otr_menu_OTR_TOOLTIP">Encrypt chats with OTR</string>
+    <string name="plugin_otr_authbuddydialog_HELP_URI">https://jitsi.org/GSOC2009/OTR</string>
+    <string name="plugin_otr_authbuddydialog_AUTHENTICATION_INFO">Authenticating a buddy helps
+    ensure that the person you are talking to is who he or she claims to be.
+    To verify the fingerprint, contact your buddy via some other authenticated
+    channel, such as the telephone or GPG-signed email. Each of you should tell
+    your fingerprint to the other. If everything matches up, you should indicate
+    in the following dialog that you *have* verified the fingerprint.</string>
+    <string name="plugin_otr_authbuddydialog_LOCAL_FINGERPRINT">Fingerprint for you, {0}: {1}</string>
+    <string name="plugin_otr_authbuddydialog_REMOTE_FINGERPRINT">Purported fingerprint for {0}: {1}</string>
+    <string name="plugin_otr_authbuddydialog_CANCEL">Cancel</string>
+    <string name="plugin_otr_authbuddydialog_HELP">Help</string>
+    <string name="plugin_otr_authbuddydialog_TITLE">Authenticate Buddy</string>
+    <string name="plugin_otr_authbuddydialog_AUTHENTICATE_BUDDY">Authenticate Buddy</string>
+    <string name="plugin_otr_authbuddydialog_I_HAVE">I have</string>
+    <string name="plugin_otr_authbuddydialog_I_HAVE_NOT">I have not</string>
+    <string name="plugin_otr_authbuddydialog_VERIFY_ACTION">verified that this is in fact the correct fingerprint for {0}.</string>
+    <string name="plugin_otr_authbuddydialog_FINGERPRINT_CHECK">Please enter the fingerprint you recieved from {0}.</string>
+    <string name="plugin_otr_configform_MY_PRIVATE_KEYS">My Private Keys</string>
+    <string name="plugin_otr_configform_KNOWN_FINGERPRINTS">Known Fingerprints</string>
+    <string name="plugin_otr_configform_CB_AUTO">Automatically initiate private messaging</string>
+    <string name="plugin_otr_configform_CB_ENABLE">Enable private messaging</string>
+    <string name="plugin_otr_configform_CB_REQUIRE">Require private messaging</string>
+    <string name="plugin_otr_configform_NO_KEY_PRESENT">No key present</string>
+    <string name="plugin_otr_configform_GENERATE">Generate</string>
+    <string name="plugin_otr_configform_REGENERATE">Re-generate</string>
+    <string name="plugin_otr_configform_FINGERPRINT">Fingerprint</string>
+    <string name="plugin_otr_configform_VERIFY_FINGERPRINT">Verify Fingerprint</string>
+    <string name="plugin_otr_configform_FORGET_FINGERPRINT">Forget Fingerprint</string>
+    <string name="plugin_otr_configform_COLUMN_NAME_CONTACT">Contact</string>
+    <string name="plugin_otr_configform_COLUMN_NAME_VERIFIED_STATUS">Verified</string>
+    <string name="plugin_otr_configform_COLUMN_VALUE_VERIFIED_TRUE">Yes</string>
+    <string name="plugin_otr_configform_COLUMN_VALUE_VERIFIED_FALSE">No</string>
+    <string name="plugin_otr_configform_VERIFY_STATUS">Verified: %s</string>
+    <string name="plugin_otr_GENERATE_DLG_TITLE">Private key generation</string>
+    <string name="plugin_otr_GENERATE_QUESTION">Do you want to generate key for %s</string>
+    <string name="plugin_otr_REGENERATE_QUESTION">Do you want to re-generate key for %s</string>
+    <string name="plugin_otr_activator_unverifiedsessionwarning">{0} is contacting you from an unrecognized computer. You should &lt;a href="jitsi://{1}/{2}?{3}">authenticate {0}&lt;/a>.</string>
+    <string name="plugin_otr_activator_unverifiedsessionstared">&lt;b>Unverified&lt;/b> private conversation with {0} started.</string>
+    <string name="plugin_otr_activator_sessionstared">Private conversation with {0} started.</string>
+    <string name="plugin_otr_activator_sessionfinished">{0} has ended his/her private conversation with you; you should do the same.</string>
+    <string name="plugin_otr_activator_sessionlost">Private conversation with {0} lost.</string>
     <!-- From resources.properties -->
     <string name="service_gui_NOT_IN_CONTACT_LIST_GROUP_NAME">NotInContactList</string>
     <string name="service_gui_CONNECTED_STATUS">Connected</string>
@@ -119,6 +212,7 @@
     <string name="service_gui_REMOTELY_ON_HOLD_STATUS">Remotely on hold</string>
     <string name="service_gui_RINGING_STATUS">Ringing</string>
     <string name="service_gui_UNKNOWN_STATUS">Unknown state</string>
+    <string name="service_gui_WAITING_AUTHORIZATION">Waiting for authorization</string>
 
     <string name="service_gui_PROACTIVE_NOTIFICATION">is writing a message</string>
     <string name="service_gui_MSG_RECEIVED">{0} wrote</string>
@@ -219,6 +313,71 @@
     <string name="service_gui_security_SECURITY_ALERT">Trying to secure call. Will disconnect in</string>
     <string name="service_gui_security_CLEAR_SAS">Clear</string>
     <string name="service_gui_security_CONFIRM_SAS">Confirm</string>
+
+    <!-- Security certificates -->
+    <string name="service_gui_ALWAYS_TRUST">Always trust this certificate</string>
+    <string name="service_gui_CERT_DIALOG_TITLE">Verify Certificate</string>
+    <string name="service_gui_CERT_DIALOG_DESCRIPTION_TXT">
+    &lt;html>{0} can\'\'t verify the identity
+    of the server when connecting to&lt;br/>
+        &lt;b>{1}&lt;/b>.&lt;br/>&lt;br/>
+    The certificate is not trusted, which means that the server\'\'s
+    identity cannot be automatically verified.&lt;br/>&lt;br/>
+    Do you want to continue connecting?&lt;br/>
+    For more information, click "Show Certificate".&lt;/html>
+    </string>
+    <string name="service_gui_CERT_DIALOG_DESCRIPTION_TXT_NOHOST">
+    &lt;html>{0} can\'\'t verify the
+    identity of the server\'\'s certificate.&lt;br/>&lt;br/>
+    The certificate is not trusted, which means that the server\'\'s
+    identity cannot&lt;br/> be automatically verified.
+    Do you want to continue connecting?&lt;br/>&lt;br/>
+    For more information, click "Show Certificate".&lt;/html>
+    </string>
+    <string name="service_gui_CERT_DIALOG_CLIENT_DESCRIPTION_TXT">
+    &lt;html>{0} can\'\'t verify the identity
+    of the connecting client.&lt;br/>&lt;br/>
+    The certificate is not trusted, which means that the client\'\'s
+    identity cannot<br/> be automatically verified.
+    Do you want to accept the connection?&lt;br/>&lt;br/>
+    For more information, click "Show Certificate".&lt;/html>
+    </string>
+    <string name="service_gui_CERT_DIALOG_PEER_DESCRIPTION_TXT">
+    &lt;html>{0} can\'\'t verify the identity
+    of the peer {1}.&lt;br/>&lt;br/>
+    The certificate is not trusted, which means that the peer\'\'s
+    identity cannot&lt;br/> be automatically verified.
+    Do you want to continue connecting?&lt;br/>&lt;br/>
+    For more information, click "Show Certificate".&lt;/html>
+    </string>
+    <string name="service_gui_CONTINUE_ANYWAY">Continue anyway</string>
+    <string name="service_gui_CERT_INFO_ISSUED_TO">&lt;html>&lt;b>Issued To&lt;/b>&lt;/html></string>
+    <string name="service_gui_CERT_INFO_CN">Common Name:</string>
+    <string name="service_gui_CERT_INFO_O">Organization:</string>
+    <string name="service_gui_CERT_INFO_C">Country Name:</string>
+    <string name="service_gui_CERT_INFO_ST">State or Province Name:</string>
+    <string name="service_gui_CERT_INFO_L">Locality Name:</string>
+    <string name="service_gui_CERT_INFO_ISSUED_BY">&lt;html>&lt;b>Issued By&lt;/b>&lt;/html></string>
+    <string name="service_gui_CERT_INFO_OU">Organizational Unit:</string>
+    <string name="service_gui_CERT_INFO_VALIDITY">&lt;html>&lt;b>Validity&lt;/b>&lt;/html></string>
+    <string name="service_gui_CERT_INFO_ISSUED_ON">Issued On:</string>
+    <string name="service_gui_CERT_INFO_EXPIRES_ON">Expires On:</string>
+    <string name="service_gui_CERT_INFO_FINGERPRINTS">&lt;html>&lt;b>Fingerprints&lt;/b>&lt;/html></string>
+    <string name="service_gui_CERT_INFO_CERT_DETAILS">&lt;html>&lt;b>Certificate Info&lt;/b>&lt;/html></string>
+    <string name="service_gui_CERT_INFO_SER_NUM">Serial Number:</string>
+    <string name="service_gui_CERT_INFO_VER">Version:</string>
+    <string name="service_gui_CERT_INFO_SIGN_ALG">Signature Algorithm:</string>
+    <string name="service_gui_CERT_INFO_PUB_KEY_INFO">&lt;html>&lt;b>Public Key Info&lt;/b>&lt;/html></string>
+    <string name="service_gui_CERT_INFO_ALG">Algorithm:</string>
+    <string name="service_gui_CERT_INFO_PUB_KEY">Public Key:</string>
+    <string name="service_gui_CERT_INFO_KEY_BYTES_PRINT">%1$s bytes: %2$s</string>
+    <string name="service_gui_CERT_INFO_KEY_BITS_PRINT">%s bits</string>
+    <string name="service_gui_CERT_INFO_EXP">Exponent:</string>
+    <string name="service_gui_CERT_INFO_KEY_SIZE">Key Size:</string>
+    <string name="service_gui_CERT_INFO_SIGN">Signature:</string>
+    <string name="service_gui_CONTINUE">Continue</string>
+    <string name="service_gui_SHOW_CERT">Show Certificate</string>
+    <string name="service_gui_HIDE_CERT">Hide Certificate</string>
 
     <!-- Settings -->
     <string name="service_gui_SETTINGS_NOT_SET">(Not set)</string>
@@ -651,5 +810,34 @@
 
     <string name="pref_key_video_bitrate">pref.key.video.bitrate</string>
     <string name="service_gui_settings_VIDEO_BITRATE">Video bitrate (kilobits/s)</string>
+
+    <!-- Security settings -->
+    <string name="pref_cat_settings_security">pref.cat.settings.security</string>
+    <string name="service_gui_settings_SECURITY">Security</string>
+    <!-- Chat security -->
+    <string name="service_gui_settings_CHAT_SECURITY_TITLE">Chat</string>
+    <string name="service_gui_settings_CHAT_SECURITY_SUMMARY">Chat security settings</string>
+    <!-- OTR Enable -->
+    <string name="pref_key_otr_enable">pref.key.otr.enable</string>
+    <string name="service_gui_settings_OTR_ENABLE_TITLE">Private messaging</string>
+    <string name="service_gui_settings_OTR_ENABLE_ON">Messaging encryption enabled</string>
+    <string name="service_gui_settings_OTR_ENABLE_OFF">No messaging encryption</string>
+    <!-- OTR Auto -->
+    <string name="pref_key_otr_auto">pref.key.otr.auto</string>
+    <string name="service_gui_settings_OTR_AUTO_TITLE">Auto private messaging</string>
+    <string name="service_gui_settings_OTR_AUTO_ON">Encrypts sessions automatically</string>
+    <string name="service_gui_settings_OTR_AUTO_OFF">Session have to be encrypted manually</string>
+    <!-- OTR Required -->
+    <string name="pref_key_otr_require">pref.key.otr.require</string>
+    <string name="service_gui_settings_OTR_REQUIRE_TITLE">Require private messaging</string>
+    <string name="service_gui_settings_OTR_REQUIRE_ON">Only secure sessions will be accepted</string>
+    <string name="service_gui_settings_OTR_REQUIRE_OFF">Secure messaging will be used if supported</string>
+    <!-- OTR private keys screen -->
+    <string name="service_gui_settings_OTR_PRIV_KEYS_TITLE">Private keys</string>
+    <string name="service_gui_settings_OTR_PRIV_KEYS_SUMMARY">Manage OTR private fingerprints</string>
+    <!-- OTR fingerprints screen -->
+    <string name="service_gui_settings_OTR_FINGERPRINTS_TITLE">Known fingerprints</string>
+    <string name="service_gui_settings_OTR_FINGERPRINTS_SUMMARY">Manage known fingerprints</string>
+
 
 </resources>

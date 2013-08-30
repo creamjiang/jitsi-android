@@ -8,22 +8,21 @@ package org.jitsi.android.gui.account;
 
 import java.beans.*;
 
-import net.java.sip.communicator.util.*;
+import android.content.*;
 
 import org.jitsi.*;
 import org.jitsi.android.*;
 import org.jitsi.android.gui.*;
+import org.jitsi.android.gui.authorization.*;
 import org.jitsi.android.gui.call.*;
 import org.jitsi.android.gui.util.*;
-
-import android.app.*;
-import android.content.*;
-import android.widget.*;
+import org.jitsi.android.gui.util.event.*;
+import org.jitsi.service.osgi.*;
 
 import net.java.sip.communicator.service.protocol.*;
 import net.java.sip.communicator.service.protocol.event.*;
+import net.java.sip.communicator.util.*;
 import net.java.sip.communicator.util.account.*;
-import org.jitsi.service.osgi.*;
 
 /**
  * The <tt>AndroidLoginRenderer</tt> is the Android renderer for login events.
@@ -61,6 +60,17 @@ public class AndroidLoginRenderer
     private final SecurityAuthority securityAuthority;
 
     /**
+     * Authorization handler instance.
+     */
+    private final AuthorizationHandlerImpl authorizationHandler;
+
+    /**
+     * List of global status listeners.
+     */
+    private EventListenerList<PresenceStatus> globalStatusListeners
+            = new EventListenerList<PresenceStatus>();
+
+    /**
      * Creates an instance of <tt>AndroidLoginRenderer</tt> by specifying the
      * current <tt>Context</tt>.
      *
@@ -76,6 +86,8 @@ public class AndroidLoginRenderer
         androidCallListener = new AndroidCallListener(appContext);
 
         securityAuthority = defaultSecurityAuthority;
+
+        authorizationHandler = new AuthorizationHandlerImpl();
     }
 
     /**
@@ -130,7 +142,7 @@ public class AndroidLoginRenderer
         if (presenceOpSet != null && androidPresenceListener != null)
         {
             presenceOpSet.removeProviderPresenceStatusListener(
-                androidPresenceListener);
+                    androidPresenceListener);
         }
     }
 
@@ -162,6 +174,15 @@ public class AndroidLoginRenderer
         ProtocolProviderService protocolProvider,
         long date)
     {
+
+        OperationSetPresence presence = AccountStatusUtils
+                .getProtocolPresenceOpSet(protocolProvider);
+
+        if (presence != null)
+        {
+            presence.setAuthorizationHandler(authorizationHandler);
+        }
+
         showStatusNotification(
             protocolProvider,
             androidContext.getString(R.string.service_gui_ONLINE),
@@ -254,6 +275,42 @@ public class AndroidLoginRenderer
     }
 
     /**
+     * Adds global status listener.
+     * @param l the listener to be add.
+     */
+    public void addGlobalStatusListener(EventListener<PresenceStatus> l)
+    {
+        globalStatusListeners.addEventListener(l);
+    }
+
+    /**
+     * Removes global status listener.
+     * @param l the listener to remove.
+     */
+    public void removeGlobalStatusListener(EventListener<PresenceStatus> l)
+    {
+        globalStatusListeners.removeEventListener(l);
+    }
+
+    /**
+     * Returns current global status.
+     * @return current global status.
+     */
+    public PresenceStatus getGlobalStatus()
+    {
+        return AndroidGUIActivator.getGlobalStatusService()
+                .getGlobalPresenceStatus();
+    }
+
+    /**
+     * AuthorizationHandler instance used by this login renderer.
+     */
+    public AuthorizationHandlerImpl getAuthorizationHandler()
+    {
+        return authorizationHandler;
+    }
+
+    /**
      * Listens for all providerStatusChanged and providerStatusMessageChanged
      * events in order to refresh the account status panel, when a status is
      * changed.
@@ -295,38 +352,8 @@ public class AndroidLoginRenderer
      */
     private void updateGlobalStatus()
     {
-        setGlobalStatus(AndroidGUIActivator.getGlobalStatusService()
-                .getGlobalPresenceStatus());
-    }
-
-    /**
-     * Sets the global status.
-     *
-     * @param presenceStatus the global <tt>PresenceStatus</tt> to set.
-     */
-    private void setGlobalStatus(final PresenceStatus presenceStatus)
-    {
-        final Activity currentActivity = JitsiApplication.getCurrentActivity();
-
-        if (currentActivity == null)
-            return;
-
-        if (!currentActivity.getClass()
-                .equals(JitsiApplication.getHomeScreenActivityClass()))
-            return;
-
-        currentActivity.runOnUiThread(new Runnable()
-        {
-            public void run()
-            {
-                ActionBarUtil.setSubtitle(
-                    currentActivity,
-                    presenceStatus.getStatusName());
-
-                ActionBarUtil.setStatus(
-                    currentActivity,
-                    StatusUtil.getContactStatusIcon(presenceStatus));
-            }
-        });
+        // Only if the GUI is active (bundle context will be null on shutdown)
+        if(AndroidGUIActivator.bundleContext != null)
+            globalStatusListeners.notifyEventListeners(getGlobalStatus());
     }
 }

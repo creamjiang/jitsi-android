@@ -6,12 +6,13 @@
  */
 package org.jitsi.android.gui.util;
 
-import org.jitsi.*;
+import android.os.*;
 
 import android.app.*;
 import android.content.*;
 import android.graphics.drawable.*;
 import android.widget.*;
+import org.jitsi.R;
 
 /**
  * The <tt>ActionBarUtil</tt> provides utility methods for setting action bar
@@ -32,10 +33,18 @@ public class ActionBarUtil
      * @param a the <tt>Activity</tt>, for which we set the action bar title
      * @param title the title string to set
      */
-    public static void setTitle(Activity a, String title)
+    public static void setTitle(Activity a, CharSequence title)
     {
+        if(Build.VERSION.SDK_INT < 11)
+            return;
+
+        ActionBar actionBar = a.getActionBar();
+        // Some activities don't have ActionBar
+        if(actionBar == null)
+            return;
+
         TextView actionBarText
-            = (TextView) a.getActionBar().getCustomView()
+            = (TextView) actionBar.getCustomView()
                 .findViewById(R.id.actionBarText);
 
         actionBarText.setText(title);
@@ -49,6 +58,9 @@ public class ActionBarUtil
      */
     public static void setSubtitle(Activity a, String subtitle)
     {
+        if(Build.VERSION.SDK_INT < 11)
+            return;
+
         TextView actionBarText
             = (TextView) a.getActionBar().getCustomView()
                 .findViewById(R.id.actionBarStatusText);
@@ -71,7 +83,11 @@ public class ActionBarUtil
             .setDrawableByLayerId(R.id.avatarDrawable,
                 AndroidImageUtil.drawableFromBytes(avatar));
 
-        a.getActionBar().setLogo(avatarDrawable);
+        // setLogo not supported prior API 14
+        if(Build.VERSION.SDK_INT >= 14)
+        {
+            a.getActionBar().setLogo(avatarDrawable);
+        }
     }
 
     /**
@@ -89,7 +105,11 @@ public class ActionBarUtil
             .setDrawableByLayerId(R.id.contactStatusDrawable,
                 AndroidImageUtil.drawableFromBytes(statusIcon));
 
-        a.getActionBar().setLogo(avatarDrawable);
+        // setLogo not supported prior API 14
+        if(Build.VERSION.SDK_INT >= 14)
+        {
+            a.getActionBar().setLogo(avatarDrawable);
+        }
     }
 
     /**

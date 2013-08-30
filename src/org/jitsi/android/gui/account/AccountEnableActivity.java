@@ -89,6 +89,33 @@ public class AccountEnableActivity
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu)
+    {
+        super.onCreateOptionsMenu(menu);
+
+        getMenuInflater().inflate(R.menu.account_settings_menu, menu);
+
+        return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item)
+    {
+        if(item.getItemId() == R.id.add_account)
+        {
+            startActivity(AccountLoginActivity.class);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /**
      * Initializes the accounts table.
      */
     private void accountsInit()
@@ -126,7 +153,7 @@ public class AccountEnableActivity
             super( AccountEnableActivity.this,
                    R.layout.account_enable_row, -1,
                    accounts,
-                   false);
+                   false, true);
         }
 
         @Override
